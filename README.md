@@ -5,4 +5,4 @@
 
 [이동건](https://github.com/dlehdrjsgg)
 [강재윤](https://github.com/jywithnd)
-[윤진영](https://github.com/Tae22m0)
+[윤진영](https://github.com/Tee22m0)
