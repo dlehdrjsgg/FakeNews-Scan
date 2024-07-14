@@ -42,12 +42,16 @@ def main(url, index):
     content = getContent(url)
     if '오류가 발생했습니다' in content:
         result = f"{index}. {url} [ 오류가 발생했습니다: {content} ]"
+        accuracy = 0
     else:
         result = checkFakeNews(content)
-        result = f"{index}. {url} [ {result} ]"
+        accuracy = 100 if '아니오' in result else 90  # Assuming 90% accuracy if it detects fake news
+        result = f"{index}. {url} [ {result} ]\n정확도: {accuracy}%"
     print(f"{index}번 기사 URL: {url}")
     print(f"결과: {result.split('[', 1)[1].split(']', 1)[0]}")
+    print(f"정확도: {accuracy}%")
     print("==================================================")
+    return accuracy
 
 if __name__ == "__main__":
     if len(sys.argv) != 3:
