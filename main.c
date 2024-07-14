@@ -13,7 +13,7 @@ void clearScreen() {
     system(CLEAR);
 }
 
-void PythonScript(const char *url, int index, FILE *OutFile, int *errorFlag, int *errorIndex) {
+void PythonScript(const char *url, int index, FILE *OutFile, int *errorFlag, int *errorIndex, int *accuracy) {
     char command[512];
     snprintf(command, sizeof(command), "python3 FakeNews.py \"%s\" %d", url, index);
     FILE *fp = popen(command, "r");
@@ -31,6 +31,8 @@ void PythonScript(const char *url, int index, FILE *OutFile, int *errorFlag, int
         if (strstr(result, "오류가 발생했습니다") != NULL) {
             *errorFlag = 1;
             *errorIndex = index;
+        } else if (strstr(result, "정확도:") != NULL) {
+            sscanf(result, "정확도: %d%%", accuracy);
         }
     }
     pclose(fp);
@@ -95,13 +97,22 @@ int main() {
 
     fprintf(OutFile, "\n< 탐지 결과 >\n");
 
+    int accuracies[10];
+    for (int i = 0; i < 10; i++) accuracies[i] = 0;
+
     while (fgets(url, sizeof(url), file) && index <= total) {
         url[strcspn(url, "\n")] = '\0';
         if (strlen(url) > 0) {
-            PythonScript(url, index, OutFile, &errorFlag, &errorIndex);
+            PythonScript(url, index, OutFile, &errorFlag, &errorIndex, &accuracies[index-1]);
             index++;
         }
     }
+
+    double sumAccuracy = 0;
+    for (int i = 0; i < total; i++) {
+        sumAccuracy += accuracies[i];
+    }
+    double avgAccuracy = sumAccuracy / total;
 
     fprintf(OutFile, "\n< 탐지 총 결과 >\n");
     if (errorFlag) {
@@ -113,6 +124,9 @@ int main() {
     }
     fprintf(OutFile, "총 %d개의 기사를 검사하였습니다.\n", total);
     printf("> 총 %d개의 기사를 검사하였습니다.\n", total);
+
+    fprintf(OutFile, "평균 정확도: %d%%\n", (int)avgAccuracy);
+    printf("> 평균 정확도: %d%%\n", (int)avgAccuracy);
 
     fclose(OutFile);
     fclose(file);
